@@ -182,7 +182,3 @@ The server uses a blocking HTTP protocol — no polling, no file watching. When 
 MIT
 
 ---
-
-<p align="center">
-  Built with <a href="https://docs.anthropic.com/en/docs/claude-code">Claude Code</a> ⚡
-</p>
