@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cheatsheet Generator</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --border: #e5e5e5;
+    --border-focus: #0071e3;
+    --text: #1d1d1f;
+    --text-secondary: #86868b;
+    --accent: #0071e3;
+    --accent-hover: #0077ED;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.47;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .page { max-width: 1400px; margin: 0 auto; padding: 48px 24px; }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+    margin-bottom: 36px;
+  }
+
+  /* Layout: form left, preview right */
+  .layout {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 36px;
+    align-items: start;
+  }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .preview-sticky { position: static !important; }
+  }
+
+  .form-col { display: flex; flex-direction: column; gap: 20px; }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+
+  .card-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+  }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+
+  .field label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  /* Segmented control */
+  .seg {
+    display: inline-flex;
+    background: #f2f2f7;
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    gap: 1px;
+  }
+
+  .seg-opt {
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+  }
+
+  .seg-opt:hover { color: var(--text); }
+
+  .seg-opt.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  /* Select */
+  select {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    font-family: inherit;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l5 6 5-6' fill='none' stroke='%2386868b' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  select:focus { border-color: var(--border-focus); }
+
+  /* Sliders */
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: #e5e5ea;
+    border-radius: 2px;
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    transition: transform 0.15s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+
+  .slider-val {
+    min-width: 38px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Checkboxes */
+  .check-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 0.82rem;
+  }
+
+  .check-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  /* Textarea */
+  textarea {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    font-family: inherit;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    outline: none;
+    resize: vertical;
+    min-height: 72px;
+    transition: border-color 0.2s;
+  }
+
+  textarea:focus { border-color: var(--border-focus); }
+
+  /* Color swatches */
+  .swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .swatch {
+    width: 48px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .swatch:hover { transform: scale(1.08); }
+
+  .swatch.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,113,227,0.2);
+  }
+
+  .sw-top { flex: 1; }
+  .sw-bot { height: 10px; display: flex; }
+  .sw-bot > div { flex: 1; }
+
+  .sw-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+
+  /* File list */
+  .file-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    background: var(--surface);
+  }
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    transition: background 0.1s;
+    cursor: pointer;
+  }
+
+  .file-item:hover { background: #f2f2f7; }
+
+  .file-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .file-ext {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 4px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .ext-pptx { background: #fee2e2; color: #dc2626; }
+  .ext-pdf  { background: #fef3c7; color: #d97706; }
+  .ext-md   { background: #d1fae5; color: #059669; }
+  .ext-img  { background: #dbeafe; color: #2563eb; }
+  .ext-txt  { background: #ede9fe; color: #7c3aed; }
+
+  .file-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .file-actions button {
+    padding: 4px 10px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .file-actions button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Submit */
+  .submit-wrap { padding-top: 4px; }
+
+  .submit-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: inherit;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: -0.01em;
+  }
+
+  .submit-btn:hover { background: var(--accent-hover); }
+  .submit-btn:active { transform: scale(0.99); }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .error-msg {
+    color: #dc2626;
+    font-size: 0.78rem;
+    margin-top: 8px;
+    text-align: center;
+    display: none;
+  }
+
+  /* Preview panel */
+  .preview-sticky {
+    position: sticky;
+    top: 24px;
+  }
+
+  .preview-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+
+  .preview-header {
+    padding: 12px 16px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .preview-dims {
+    font-weight: 400;
+    font-size: 0.65rem;
+    color: #aaa;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .preview-body {
+    padding: 16px;
+    background: #fff;
+    aspect-ratio: 11 / 8.5;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .preview-body.landscape { aspect-ratio: 11 / 8.5; }
+  .preview-body.portrait { aspect-ratio: 8.5 / 11; }
+  .preview-body.a4-landscape { aspect-ratio: 297 / 210; }
+  .preview-body.a4-portrait { aspect-ratio: 210 / 297; }
+  .preview-body.a3-landscape { aspect-ratio: 420 / 297; }
+  .preview-body.a3-portrait { aspect-ratio: 297 / 420; }
+
+  .preview-page {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    gap: 2px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    color: #1d1d1f;
+    overflow: hidden;
+  }
+
+  .preview-col {
+    flex: 1;
+    overflow: hidden;
+    border-right: 0.5px solid #ddd;
+    padding: 2px;
+  }
+
+  .preview-col:last-child { border-right: none; }
+
+  .prev-section {
+    font-weight: 700;
+    color: #003366;
+    margin-bottom: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .prev-sub {
+    font-weight: 700;
+    color: #008b8b;
+    margin-bottom: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .prev-text {
+    color: #333;
+    margin-bottom: 0.5px;
+    line-height: 1.1;
+  }
+
+  .prev-formula {
+    background: #fffff0;
+    padding: 0.5px 1px;
+    margin-bottom: 0.5px;
+    font-style: italic;
+    color: #555;
+  }
+
+  .prev-highlight {
+    background: #ffff96;
+    padding: 0 1px;
+  }
+
+  .prev-concept { color: #008b8b; font-weight: 700; }
+  .prev-process { color: #800080; font-weight: 700; }
+  .prev-category { color: #008000; font-weight: 700; }
+
+  /* Success */
+  .success-page {
+    display: none;
+    text-align: center;
+    padding: 120px 20px;
+  }
+
+  .success-page .icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #34c759;
+    color: #fff;
+    font-size: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .success-page h2 { font-size: 1.4rem; margin-bottom: 8px; }
+  .success-page p { color: var(--text-secondary); font-size: 0.95rem; }
+</style>
+</head>
+<body>
+
+<div class="page" id="mainForm">
+  <h1>Cheatsheet Generator</h1>
+  <p class="subtitle">Configure layout and preferences, then generate.</p>
+
+  <div class="layout">
+    <!-- Left: Form -->
+    <div class="form-col">
+
+      <!-- Layout -->
+      <div class="card">
+        <div class="card-title">Layout</div>
+
+        <div class="field">
+          <label>Paper</label>
+          <div class="seg" data-field="paper_size">
+            <button class="seg-opt" data-val="letterpaper">Letter</button>
+            <button class="seg-opt" data-val="a4paper">A4</button>
+            <button class="seg-opt" data-val="a3paper">A3</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Orientation</label>
+          <div class="seg" data-field="orientation">
+            <button class="seg-opt active" data-val="landscape">Landscape</button>
+            <button class="seg-opt" data-val="portrait">Portrait</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Columns</label>
+          <div class="seg" data-field="columns">
+            <button class="seg-opt" data-val="2">2</button>
+            <button class="seg-opt" data-val="3">3</button>
+            <button class="seg-opt" data-val="4">4</button>
+            <button class="seg-opt" data-val="5">5</button>
+            <button class="seg-opt active" data-val="6">6</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Font Size</label>
+          <div class="slider-row">
+            <input type="range" id="fontSize" min="4" max="8" step="0.5" value="5">
+            <span class="slider-val" id="fontSizeVal">5pt</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Font</label>
+          <select id="fontFamily">
+            <option value="Verdana" selected>Verdana</option>
+            <option value="Helvetica">Helvetica</option>
+            <option value="Arial">Arial</option>
+            <option value="Calibri">Calibri</option>
+            <option value="Segoe UI">Segoe UI</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Margin</label>
+          <div class="slider-row">
+            <input type="range" id="margin" min="2" max="12" step="1" value="3">
+            <span class="slider-val" id="marginVal">3mm</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="card">
+        <div class="card-title">Content</div>
+
+        <div class="field">
+          <label>Detail Level</label>
+          <div class="seg" data-field="detail_level">
+            <button class="seg-opt" data-val="concise">Concise</button>
+            <button class="seg-opt active" data-val="moderate">Moderate</button>
+            <button class="seg-opt" data-val="detailed">Detailed</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Include</label>
+          <div class="check-row"><input type="checkbox" id="includeProofs"><label for="includeProofs">Theorem proofs</label></div>
+          <div class="check-row"><input type="checkbox" id="includeExamples" checked><label for="includeExamples">Examples</label></div>
+          <div class="check-row"><input type="checkbox" id="includeDerivations"><label for="includeDerivations">Formula derivations</label></div>
+        </div>
+
+        <div class="field">
+          <label>Subject</label>
+          <select id="subjectType">
+            <option value="cs" selected>Computer Science</option>
+            <option value="math">Mathematics</option>
+            <option value="physics">Physics</option>
+            <option value="engineering">Engineering</option>
+            <option value="statistics">Statistics</option>
+            <option value="general">General</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Exam Focus</label>
+          <textarea id="examFocus" placeholder="Key topics to prioritize..."></textarea>
+        </div>
+      </div>
+
+      <!-- Colors -->
+      <div class="card">
+        <div class="card-title">Color Scheme</div>
+        <div class="swatches" id="swatchGroup">
+          <div class="swatch active" data-scheme="classic">
+            <div class="sw-top" style="background:#003366;"></div>
+            <div class="sw-bot"><div style="background:#008b8b;"></div><div style="background:#800080;"></div><div style="background:#008000;"></div></div>
+            <span class="sw-label">Classic</span>
+          </div>
+          <div class="swatch" data-scheme="ocean">
+            <div class="sw-top" style="background:#1565C0;"></div>
+            <div class="sw-bot"><div style="background:#0097A7;"></div><div style="background:#283593;"></div><div style="background:#00838F;"></div></div>
+            <span class="sw-label">Ocean</span>
+          </div>
+          <div class="swatch" data-scheme="forest">
+            <div class="sw-top" style="background:#2E7D32;"></div>
+            <div class="sw-bot"><div style="background:#00695C;"></div><div style="background:#4E342E;"></div><div style="background:#33691E;"></div></div>
+            <span class="sw-label">Forest</span>
+          </div>
+          <div class="swatch" data-scheme="sunset">
+            <div class="sw-top" style="background:#E65100;"></div>
+            <div class="sw-bot"><div style="background:#BF360C;"></div><div style="background:#880E4F;"></div><div style="background:#F57F17;"></div></div>
+            <span class="sw-label">Sunset</span>
+          </div>
+          <div class="swatch" data-scheme="mono">
+            <div class="sw-top" style="background:#37474F;"></div>
+            <div class="sw-bot"><div style="background:#546E7A;"></div><div style="background:#455A64;"></div><div style="background:#607D8B;"></div></div>
+            <span class="sw-label">Mono</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Files -->
+      <div class="card">
+        <div class="card-title">Files</div>
+        <div class="file-actions">
+          <button onclick="toggleAll(true)">Select All</button>
+          <button onclick="toggleAll(false)">Select None</button>
+        </div>
+        <div class="file-list" id="fileList">%%FILE_LIST%%</div>
+      </div>
+
+      <div class="submit-wrap">
+        <button class="submit-btn" id="submitBtn" onclick="submitConfig()">Generate Cheatsheet</button>
+        <div class="error-msg" id="errorMsg"></div>
+      </div>
+    </div>
+
+    <!-- Right: Live Preview -->
+    <div class="preview-sticky">
+      <div class="preview-card">
+        <div class="preview-header">
+          <span>Preview</span>
+          <span class="preview-dims" id="previewDims">Letter Landscape · 6 col · 5pt</span>
+        </div>
+        <div class="preview-body landscape" id="previewBody">
+          <div class="preview-page" id="previewPage"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Success -->
+<div class="success-page" id="successPage">
+  <div class="icon">&#10003;</div>
+  <h2>Configuration Saved</h2>
+  <p>Claude is reading your materials and generating the cheatsheet.</p>
+</div>
+
+<script>
+  // --- Color scheme definitions ---
+  const colorSchemes = {
+    classic: { section: '#003366', concept: '#008b8b', process: '#800080', category: '#008000', highlight: '#ffff96' },
+    ocean:   { section: '#1565C0', concept: '#0097A7', process: '#283593', category: '#00838F', highlight: '#ffff96' },
+    forest:  { section: '#2E7D32', concept: '#00695C', process: '#4E342E', category: '#33691E', highlight: '#ffff96' },
+    sunset:  { section: '#E65100', concept: '#BF360C', process: '#880E4F', category: '#F57F17', highlight: '#ffff96' },
+    mono:    { section: '#37474F', concept: '#546E7A', process: '#455A64', category: '#607D8B', highlight: '#ffff96' },
+  };
+
+  // --- Sample content for preview (from actual cheatsheet) ---
+  const sampleContent = [
+    [
+      {type:'section', text:'SCALABILITY'},
+      {type:'text', text:'<span class="prev-concept">Scalable</span>: adapts to demand.'},
+      {type:'text', text:'<span class="prev-category">Horizontal</span>: add machines.'},
+      {type:'text', text:'<span class="prev-category">Vertical</span>: add resources.'},
+      {type:'formula', text:'S(N) = 1/((1-f) + f/N)'},
+      {type:'text', text:'f = parallelizable fraction'},
+      {type:'sub', text:'Granularity'},
+      {type:'text', text:'Coarse > fine-grain (less overhead)'},
+      {type:'sub', text:'Dependencies'},
+      {type:'text', text:'Critical path = longest chain.'},
+    ],
+    [
+      {type:'section', text:'RACE CONDITIONS'},
+      {type:'text', text:'Result depends on timing of threads.'},
+      {type:'text', text:'Cause: concurrent <b>writes</b>.'},
+      {type:'sub', text:'Consistency Models'},
+      {type:'text', text:'<span class="prev-category">Sequential</span>: valid interleaving'},
+      {type:'text', text:'<span class="prev-category">Strong</span>: reads return new val'},
+      {type:'text', text:'<span class="prev-category">Eventual</span>: converges eventually'},
+      {type:'section', text:'MUTUAL EXCLUSION'},
+      {type:'text', text:'<span class="prev-concept">Critical section</span>: dangerous code'},
+      {type:'text', text:'<span class="prev-process">LOCK/UNLOCK</span> mechanism'},
+    ],
+    [
+      {type:'section', text:'DEADLOCKS'},
+      {type:'text', text:'2+ threads hold locks other needs.'},
+      {type:'text', text:'Detect: wait-for graph cycle.'},
+      {type:'sub', text:'Solutions'},
+      {type:'text', text:'Lock manager (centralized)'},
+      {type:'text', text:'Resource hierarchy (global order)'},
+      {type:'section', text:'MEMORY ARCHS'},
+      {type:'text', text:'<span class="prev-concept">SMP</span>: shared, uniform latency'},
+      {type:'text', text:'<span class="prev-concept">NUMA</span>: local 2-3x faster'},
+      {type:'text', text:'<span class="prev-concept">Shared-Nothing</span>: network msg'},
+    ],
+    [
+      {type:'section', text:'HTTP PROTOCOL'},
+      {type:'text', text:'Text-based req/resp on TCP.'},
+      {type:'sub', text:'Methods'},
+      {type:'text', text:'<span class="prev-concept">GET</span> HEAD PUT DELETE POST'},
+      {type:'sub', text:'Status Codes'},
+      {type:'text', text:'<span class="prev-highlight">200</span> OK'},
+      {type:'text', text:'<span class="prev-highlight">404</span> Not Found'},
+      {type:'text', text:'<span class="prev-highlight">500</span> Server Error'},
+      {type:'section', text:'HTTPS'},
+      {type:'text', text:'HTTP + TLS encryption.'},
+    ],
+    [
+      {type:'section', text:'HTTP/2 & HTTP/3'},
+      {type:'text', text:'<span class="prev-concept">Binary framing</span>: not plain text'},
+      {type:'text', text:'<span class="prev-concept">Multiplexing</span>: multi streams'},
+      {type:'text', text:'<span class="prev-concept">HPACK</span>: header compression'},
+      {type:'text', text:'<span class="prev-concept">Server push</span>: PUSH_PROMISE'},
+      {type:'sub', text:'HTTP/3'},
+      {type:'text', text:'QUIC on UDP. Independent streams.'},
+      {type:'section', text:'HTML & CSS'},
+      {type:'text', text:'Structure + semantic content.'},
+      {type:'text', text:'CSS: separate formatting.'},
+    ],
+    [
+      {type:'section', text:'DYNAMIC CONTENT'},
+      {type:'sub', text:'CGI'},
+      {type:'text', text:'External program per request.'},
+      {type:'text', text:'Drawback: new process (slow).'},
+      {type:'sub', text:'Servlets'},
+      {type:'text', text:'Java class; thread per request.'},
+      {type:'section', text:'SESSIONS'},
+      {type:'text', text:'<span class="prev-highlight">Session ID: large + random!</span>'},
+      {type:'sub', text:'Cookies'},
+      {type:'text', text:'KV pairs in browser, ≤4KB.'},
+    ]
+  ];
+
+  // --- Render preview ---
+  function renderPreview() {
+    const cols = parseInt(getSegVal('columns'));
+    const fontSize = parseFloat(document.getElementById('fontSize').value);
+    const orientation = getSegVal('orientation');
+    const paper = getSegVal('paper_size');
+    const margin = parseInt(document.getElementById('margin').value);
+    const font = document.getElementById('fontFamily').value;
+
+    // Update dims text
+    const paperName = {letterpaper:'Letter', a4paper:'A4', a3paper:'A3'}[paper];
+    const orientName = orientation.charAt(0).toUpperCase() + orientation.slice(1);
+    document.getElementById('previewDims').textContent = `${paperName} ${orientName} · ${cols} col · ${fontSize}pt`;
+
+    // Update aspect ratio
+    const body = document.getElementById('previewBody');
+    body.className = 'preview-body';
+    if (paper === 'a4paper') body.classList.add(orientation === 'landscape' ? 'a4-landscape' : 'a4-portrait');
+    else if (paper === 'a3paper') body.classList.add(orientation === 'landscape' ? 'a3-landscape' : 'a3-portrait');
+    else body.classList.add(orientation);
+
+    // Scale factor: map 5pt real -> readable preview size
+    const scale = fontSize / 5;
+    const baseSize = 7.5; // px base for preview text (larger for readability)
+
+    // Get selected color scheme
+    const schemeName = document.querySelector('.swatch.active')?.dataset.scheme || 'classic';
+    const colors = colorSchemes[schemeName] || colorSchemes.classic;
+
+    const page = document.getElementById('previewPage');
+    page.style.fontFamily = font + ', sans-serif';
+    page.style.padding = (margin * 1.2) + 'px';
+    page.innerHTML = '';
+
+    for (let c = 0; c < cols; c++) {
+      const colDiv = document.createElement('div');
+      colDiv.className = 'preview-col';
+      const items = sampleContent[c % sampleContent.length];
+      items.forEach(item => {
+        const el = document.createElement('div');
+        const sz = baseSize * scale;
+        if (item.type === 'section') {
+          el.className = 'prev-section';
+          el.style.fontSize = (sz * 1.15) + 'px';
+          el.style.color = colors.section;
+          el.textContent = item.text;
+        } else if (item.type === 'sub') {
+          el.className = 'prev-sub';
+          el.style.fontSize = (sz * 1.05) + 'px';
+          el.style.color = colors.concept;
+          el.textContent = item.text;
+        } else if (item.type === 'formula') {
+          el.className = 'prev-formula';
+          el.style.fontSize = sz + 'px';
+          el.textContent = item.text;
+        } else {
+          el.className = 'prev-text';
+          el.style.fontSize = sz + 'px';
+          // Replace semantic color classes with inline styles based on scheme
+          let html = item.text;
+          html = html.replace(/class="prev-concept"/g, `style="color:${colors.concept};font-weight:700"`);
+          html = html.replace(/class="prev-process"/g, `style="color:${colors.process};font-weight:700"`);
+          html = html.replace(/class="prev-category"/g, `style="color:${colors.category};font-weight:700"`);
+          html = html.replace(/class="prev-highlight"/g, `style="background:${colors.highlight};padding:0 1px"`);
+          el.innerHTML = html;
+        }
+        colDiv.appendChild(el);
+      });
+      page.appendChild(colDiv);
+    }
+  }
+
+  // --- Segmented controls ---
+  document.querySelectorAll('.seg').forEach(seg => {
+    // Set default active for paper_size (Letter)
+    if (seg.dataset.field === 'paper_size') {
+      seg.querySelector('[data-val="letterpaper"]').classList.add('active');
+    }
+    seg.querySelectorAll('.seg-opt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        seg.querySelectorAll('.seg-opt').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderPreview();
+      });
+    });
+  });
+
+  // Swatches — also re-render preview with new colors
+  document.querySelectorAll('.swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+      sw.classList.add('active');
+      renderPreview();
+    });
+  });
+
+  // Sliders
+  const fontSlider = document.getElementById('fontSize');
+  fontSlider.addEventListener('input', () => {
+    document.getElementById('fontSizeVal').textContent = fontSlider.value + 'pt';
+    renderPreview();
+  });
+
+  const marginSlider = document.getElementById('margin');
+  marginSlider.addEventListener('input', () => {
+    document.getElementById('marginVal').textContent = marginSlider.value + 'mm';
+    renderPreview();
+  });
+
+  document.getElementById('fontFamily').addEventListener('change', renderPreview);
+
+  // File toggle
+  function toggleAll(checked) {
+    document.querySelectorAll('#fileList input[type="checkbox"]').forEach(cb => cb.checked = checked);
+  }
+
+  // Get seg value
+  function getSegVal(field) {
+    const seg = document.querySelector(`.seg[data-field="${field}"]`);
+    const active = seg.querySelector('.seg-opt.active');
+    return active ? active.dataset.val : null;
+  }
+
+  // Submit
+  async function submitConfig() {
+    const selectedFiles = [];
+    document.querySelectorAll('#fileList input[type="checkbox"]').forEach(cb => {
+      if (cb.checked) selectedFiles.push(cb.dataset.filename);
+    });
+
+    if (selectedFiles.length === 0) {
+      const err = document.getElementById('errorMsg');
+      err.textContent = 'Select at least one file.';
+      err.style.display = 'block';
+      return;
+    }
+
+    const config = {
+      layout: {
+        paper_size: getSegVal('paper_size'),
+        orientation: getSegVal('orientation'),
+        columns: parseInt(getSegVal('columns')),
+        font_size_pt: parseFloat(fontSlider.value),
+        font_family: document.getElementById('fontFamily').value,
+        margin_mm: parseInt(marginSlider.value)
+      },
+      content: {
+        detail_level: getSegVal('detail_level'),
+        include_proofs: document.getElementById('includeProofs').checked,
+        include_examples: document.getElementById('includeExamples').checked,
+        include_derivations: document.getElementById('includeDerivations').checked,
+        subject_type: document.getElementById('subjectType').value
+      },
+      colors: { scheme: document.querySelector('.swatch.active').dataset.scheme },
+      selected_files: selectedFiles,
+      exam_focus: document.getElementById('examFocus').value.trim()
+    };
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+      const resp = await fetch('/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config) });
+      if (resp.ok) {
+        document.getElementById('mainForm').style.display = 'none';
+        document.getElementById('successPage').style.display = 'block';
+      } else throw new Error();
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = 'Generate Cheatsheet';
+      const err = document.getElementById('errorMsg');
+      err.textContent = 'Failed to save. Try again.';
+      err.style.display = 'block';
+    }
+  }
+
+  // Init
+  renderPreview();
+</script>
+</body>
+</html>

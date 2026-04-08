@@ -1,0 +1,271 @@
+\documentclass[10pt,landscape,letterpaper]{article}
+\usepackage[landscape,left=3mm,right=3mm,top=3mm,bottom=3mm]{geometry}
+\usepackage{multicol}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fontspec}
+\usepackage{booktabs}
+\usepackage{graphicx}
+
+% Font settings
+\setmainfont{Verdana}
+\setsansfont{Verdana}
+
+% Colors
+\definecolor{sectionblue}{RGB}{0,51,102}
+\definecolor{conceptcyan}{RGB}{0,139,139}
+\definecolor{processpurple}{RGB}{128,0,128}
+\definecolor{categorygreen}{RGB}{0,128,0}
+\definecolor{highlightyellow}{RGB}{255,255,150}
+
+% Font size and spacing
+\renewcommand{\normalsize}{\fontsize{5pt}{5pt}\selectfont}
+\normalsize
+
+% Section formatting
+\titleformat{\section}{\color{sectionblue}\bfseries\fontsize{6pt}{6pt}\selectfont}{}{0em}{}
+\titleformat{\subsection}{\color{conceptcyan}\bfseries\fontsize{5.5pt}{5.5pt}\selectfont}{}{0em}{}
+\titlespacing*{\section}{0pt}{1pt}{0.5pt}
+\titlespacing*{\subsection}{0pt}{0.5pt}{0.25pt}
+
+% List settings
+\setlist[itemize]{leftmargin=*,nosep,topsep=0pt,parsep=0pt,partopsep=0pt,itemsep=0pt}
+\setlist[enumerate]{leftmargin=*,nosep,topsep=0pt,parsep=0pt,partopsep=0pt,itemsep=0pt}
+
+% Paragraph settings
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.3pt}
+\setlength{\columnsep}{3mm}
+
+\pagestyle{empty}
+
+\newcommand{\concept}[1]{\textcolor{conceptcyan}{\textbf{#1}}}
+\newcommand{\process}[1]{\textcolor{processpurple}{\textbf{#1}}}
+\newcommand{\category}[1]{\textcolor{categorygreen}{\textbf{#1}}}
+\newcommand{\important}[1]{\colorbox{highlightyellow}{#1}}
+
+\begin{document}
+\begin{multicols}{6}
+
+\section{SCALABILITY}
+\concept{Scalable}: system adapts to increased/reduced demand w/o redesign.
+\category{Horizontal}: add machines.
+\category{Vertical}: add resources to one machine.\\
+Scalability limited by \important{bottlenecks}.\\
+$4\times$ nodes $\approx$ $4\times$ capacity (efficient growth).
+
+\subsection{Speedup}
+$\text{Speedup} = \frac{\text{time w/ 1 core}}{\text{time w/ N cores}}$\\
+Ideal: linear. Reality: sublinear (serial parts + overhead).
+
+\subsection{Amdahl's Law}
+\important{$S(N) = \frac{1}{(1-f) + f/S_{\text{part}}}$}\\
+$f$ = parallelizable fraction\\
+Even $\infty$ cores can't beat $\frac{1}{1-f}$\\
+More parallelism can \textcolor{red}{decrease} perf beyond sweet spot.
+
+\subsection{Granularity}
+\category{Coarse-grain}: large tasks/core (efficient)\\
+\category{Fine-grain}: small tasks/core (too much overhead)
+
+\subsection{Dependencies}
+Tasks may depend on others $\to$ limits parallelism.\\
+Max speedup = \concept{critical path} (longest chain).\\
+\concept{Embarrassingly parallel}: no dependencies.
+
+\section{RACE CONDITIONS}
+\concept{Race condition}: result depends on exact timing of concurrent threads.\\
+Cause: concurrent \textbf{writes} to shared state.\\
+Read-only access is safe.
+
+\subsection{Consistency Models}
+\category{Sequential}: result = valid sequential interleaving; each core's ops in program order\\
+\category{Strong}: after write, all reads return new value\\
+\category{Weak}: no guarantee until condition met\\
+\category{Eventual}: if no more writes, reads \emph{eventually} return latest\\
+Variants: causal, read-your-writes, monotonic
+
+\section{MUTUAL EXCLUSION}
+\concept{Critical section}: code where concurrent access causes problems.\\
+\concept{Mutual exclusion}: only one thread in critical section at a time. Reduces parallelism.
+
+\subsection{Locking}
+\process{LOCK(X)}: if unlocked, lock \& continue; if locked, wait.\\
+\process{UNLOCK(X)}: release lock.\\
+Granularity: one big lock (simple) vs.\ per-variable (more parallel).
+
+\subsection{Deadlocks}
+Two+ threads each hold lock other needs $\to$ neither proceeds.\\
+Detect via \concept{wait-for graph}: cycle = deadlock.\\
+\category{Solutions}:
+\begin{itemize}
+\item Lock manager (centralized, limits scalability)
+\item Resource hierarchy (fixed global order)
+\item Chandy/Misra (dirty/clean fork protocol)
+\end{itemize}
+\concept{Optimistic concurrency}: allow concurrent updates, merge; if conflict, serialize.
+
+\section{MEMORY ARCHITECTURES}
+\subsection{SMP}
+\concept{Symmetric Multiprocessing}: all cores share memory, uniform latency.\\
+Simple, easy load balance. Limited $\sim$10 cores.
+
+\subsection{NUMA}
+\concept{Non-Uniform Memory}: memory local to each CPU.\\
+Any core accesses any byte, but local 2--3$\times$ faster.\\
+Better scalability, harder programming.
+
+\subsection{Shared-Nothing}
+Independent machines on network.\\
+Each CPU: local memory only; remote = message passing.\\
+Best scalability, nontrivial programming.
+
+\section{SCALING DISTRIBUTED}
+\subsection{Load Balancing}
+Distribute TCP flows (not packets!) across frontends.\\
+\process{Layer-4 LB}: hash 5-tuple $\to$ machine.
+
+\subsection{Frontend / Backend}
+Separate request handling (FE) from data (BE).\\
+FE stateless $\to$ easy to scale.\\
+Problem: replicated FE + local data = no consistency.\\
+Solution: centralize data in BE.
+
+\subsection{Sharding}
+Split BE data across machines.\\
+E.g.\ accounts 0--4 on server A, 5--9 on B.\\
+FE routes to correct BE. Scales read \& write.
+
+\subsection{Cost of Scalability}
+\important{Scalability rarely free.}\\
+Single-thread SSD beat Spark 128-core for PageRank.\\
+(McSherry et al.\ ``Scalability! But at what COST?'')
+
+\section{THE WEB}
+\concept{WWW}: collection of interconnected docs running on top of the Internet (not = Internet).\\
+\concept{Ingredients}: HTML, URIs/URLs, DNS, HTTP, client/server, browser, scripting, cookies.
+
+\subsection{URIs / URLs}
+\concept{URI}: umbrella (URN + URL)\\
+\concept{URN}: identifies \emph{what} (\texttt{urn:isbn:059652})\\
+\concept{URL}: identifies \emph{where}\\
+\important{\texttt{<scheme>://[user@]<host>[:port]/[path][?params]}}
+
+\section{CLIENT-SERVER MODEL}
+\concept{Servers}: offer services.\\
+\concept{Clients}: consume via request/response.\\
+\concept{Peer-to-peer}: no special machines, all peers equal.\\
+Well-known ports: 80 (HTTP), 443 (HTTPS), 22 (SSH).\\
+\process{Server challenges}: concurrency, fault tolerance, state, consistency, security.
+
+\section{HTTP PROTOCOL}
+\concept{HTTP}: text-based request/response on TCP.\\
+Port 80 (HTTP), 443 (HTTPS w/ TLS). First spec 1990.
+
+\subsection{Request}
+\texttt{METHOD URI HTTP/1.1}\\
++ headers + blank line + body (optional)
+
+\subsection{Methods}
+\begin{tabular}{@{}ll@{}}
+\concept{GET} & Retrieve resource \\
+\concept{HEAD} & Metadata only \\
+\concept{PUT} & Store at URI \\
+\concept{DELETE} & Remove resource \\
+\concept{POST} & Submit data (forms)
+\end{tabular}
+
+\subsection{Headers}
+\concept{Connection}: close / keep-alive\\
+\concept{Content-Length}: bytes in body\\
+\concept{Content-Type}: MIME type
+
+\subsection{Status Codes}
+\begin{tabular}{@{}ll@{}}
+\important{200} & OK \\
+\important{301} & Moved Permanently \\
+\important{304} & Not Modified \\
+\important{401} & Unauthorized \\
+\important{403} & Forbidden \\
+\important{404} & Not Found \\
+\important{500} & Internal Server Error
+\end{tabular}
+
+\subsection{HTTPS}
+HTTP + TLS. Encrypts traffic. Client verifies server via cert. IP still visible.
+
+\section{HTTP/2 \& HTTP/3}
+\subsection{HTTP/1.1 Problems}
+\begin{itemize}
+\item \concept{Head-of-line blocking}: slow object blocks later ones
+\item No prioritization
+\item No server push
+\end{itemize}
+
+\subsection{HTTP/2 (2015)}
+\category{Binary framing}: msgs as binary frames (not text)\\
+\category{Multiplexing}: single TCP conn, multiple streams\\
+\category{Priority}: weights + parent deps\\
+\category{HPACK}: header compression\\
+\category{Server push}: PUSH\_PROMISE; client can RST\_STREAM
+
+\subsection{HTTP/3}
+Replaces TCP w/ \concept{QUIC} (RFC 9000, on UDP).\\
+Streams fully independent. Loss in one $\neq$ block others.
+
+\section{HTML \& CSS}
+\concept{HTML}: structure + semantic content.\\
+Elements: \texttt{<h1>}-\texttt{<h6>}, \texttt{<p>}, \texttt{<br>}, \texttt{<ul>/<li>}, \texttt{<img>}, \texttt{<a>}, \texttt{<table>}.\\
+\concept{CSS}: separate content from formatting.\\
+\texttt{<div>}/\texttt{<span>}: generic containers.\\
+\concept{Cascade}: multiple sheets, defined precedence.
+
+\subsection{Forms}
+\texttt{<form action="url" method="get|post">}\\
+\category{GET}: params in URL, idempotent, length-limited\\
+\category{POST}: params in body, binary OK, browser warns resend
+
+\section{DYNAMIC CONTENT}
+\subsection{CGI}
+\concept{CGI}: server runs external program per request.\\
+Program reads env vars + stdin, writes HTML stdout.\\
+Drawbacks: new \textbf{process}/req (slow), security risks.
+
+\subsection{Java Servlets}
+Java class in servlet container (Tomcat).\\
+One instance; each req = own \textbf{thread} (not process).\\
+\begin{tabular}{@{}ll@{}}
+ & \concept{CGI} / \concept{Servlets} \\
+Handled by & processes / threads \\
+State & filesystem / container \\
+Security & risky / Java sandbox
+\end{tabular}
+
+\subsection{Routing}
+Map URL patterns to handlers.\\
+\concept{Spark}: \texttt{get("/hello", (req,res) -> "Hi")}\\
+Patterns: wildcards, path params, query params.
+
+\section{SESSIONS \& COOKIES}
+\concept{Session}: sequence of related interactions.\\
+State kept server-side; client gets \concept{session ID}.\\
+\important{Session ID must be large + random!}
+
+\subsection{Cookies}
+Small KV pairs in browser ($\leq$4KB).\\
+Server: \texttt{Set-Cookie} header.\\
+Browser sends back on matching domain+path.\\
+Attrs: expiration, domain, path.
+
+\section{TRACKING \& ADS}
+\concept{Ad networks}: combine tracking across sites.\\
+\concept{Third-party cookies}: embedded content carries ad domain's cookies $\to$ cross-site tracking.\\
+Infer: gender, age, interests, income.\\
+\important{Google Ads: \$147B revenue (2020).}\\
+Privacy: browsers blocking 3rd-party cookies.\\
+Alternatives: micropayments, FLoC/FLEDGE (cohorts).
+
+\end{multicols}
+\end{document}

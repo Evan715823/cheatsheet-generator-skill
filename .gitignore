@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+.rendered/
+.uploads/
+.converted/
+*_media/
+.cheatsheet_config.json
+cheatsheet.tex
+*.aux
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+.DS_Store
+Thumbs.db

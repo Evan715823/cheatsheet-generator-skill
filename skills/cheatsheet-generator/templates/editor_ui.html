@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cheatsheet Editor</title>
+<style>
+  :root {
+    --bg: #f5f5f7;
+    --surface: #ffffff;
+    --border: #e5e5e5;
+    --text: #1d1d1f;
+    --text-sec: #86868b;
+    --accent: #0071e3;
+    --accent-hover: #0077ED;
+    --green: #34c759;
+    --amber: #ff9f0a;
+    --red: #ff3b30;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06);
+    --mono: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 0.5px solid var(--border);
+    gap: 12px;
+    flex-shrink: 0;
+    z-index: 10;
+  }
+
+  .toolbar h1 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-right: auto;
+    letter-spacing: -0.01em;
+  }
+
+  .tb-btn {
+    padding: 6px 16px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    font-family: inherit;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  .tb-btn:hover { border-color: #ccc; background: #fafafa; }
+
+  .tb-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .tb-btn.primary:hover { background: var(--accent-hover); }
+
+  /* Main */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Left: source */
+  .panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 10px 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-sec);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 0.5px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  #previewImg {
+    max-width: 100%;
+    max-height: 180px;
+    object-fit: contain;
+    background: #fff;
+    display: none;
+    flex-shrink: 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .source-wrap {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    background: var(--surface);
+  }
+
+  .source-code {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-all;
+    tab-size: 2;
+    color: #333;
+  }
+
+  .tex-cmd { color: #af52de; }
+  .tex-brace { color: #0071e3; }
+  .tex-comment { color: #8e8e93; font-style: italic; }
+  .tex-math { color: #ff6723; }
+  .tex-env { color: #5856d6; }
+
+  /* Right: edit */
+  .panel-right {
+    border-left: 0.5px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+  }
+
+  .edit-section {
+    padding: 20px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .edit-section textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    font-size: 0.82rem;
+    font-family: inherit;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+    line-height: 1.5;
+  }
+
+  .edit-section textarea:focus { border-color: var(--accent); }
+  .edit-section textarea:disabled { opacity: 0.5; }
+
+  /* Image upload */
+  .upload-area {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1.5px dashed var(--border);
+    border-radius: 10px;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-sec);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .upload-area:hover, .upload-area.dragover {
+    border-color: var(--accent);
+    background: rgba(0,113,227,0.04);
+    color: var(--accent);
+  }
+
+  .upload-area input[type="file"] {
+    display: none;
+  }
+
+  .upload-previews {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .upload-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+  }
+
+  .upload-file-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    font-weight: 600;
+    color: var(--text-sec);
+    text-align: center;
+    overflow: hidden;
+    word-break: break-all;
+    padding: 2px;
+    line-height: 1.1;
+  }
+
+  .upload-thumb-wrap {
+    position: relative;
+    display: inline-block;
+  }
+
+  .upload-remove {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    font-size: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  .edit-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .edit-btn {
+    padding: 8px 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: inherit;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .edit-btn:hover { background: var(--accent-hover); }
+  .edit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--text-sec);
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+  }
+
+  .status-dot.working {
+    background: var(--amber);
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* History */
+  .history-wrap {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+  }
+
+  .history-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-sec);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+  }
+
+  .h-item {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.78rem;
+  }
+
+  .h-req { color: var(--text-sec); margin-bottom: 4px; line-height: 1.4; }
+  .h-res { color: var(--green); font-weight: 500; }
+
+  /* Done overlay */
+  .done-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(245,245,247,0.95);
+    backdrop-filter: blur(20px);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .done-overlay.show { display: flex; }
+
+  .done-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--green);
+    color: #fff;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .done-overlay h2 { font-size: 1.3rem; font-weight: 600; }
+  .done-overlay p { color: var(--text-sec); }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>Cheatsheet Editor</h1>
+  <button class="tb-btn" onclick="copyTex()">Copy</button>
+  <button class="tb-btn" onclick="downloadTex()">Download</button>
+  <button class="tb-btn primary" onclick="finish()">Done</button>
+</div>
+
+<div class="main">
+  <div class="panel">
+    <div class="panel-header">LaTeX Source</div>
+    <img id="previewImg" alt="PDF Preview">
+    <div class="source-wrap">
+      <div class="source-code" id="sourceCode">Loading...</div>
+    </div>
+  </div>
+
+  <div class="panel-right">
+    <div class="edit-section">
+      <textarea id="editInput" placeholder="Describe changes...&#10;&#10;e.g. Add more detail to the HTTP section"></textarea>
+      <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+        Drop files here, click to upload, or paste (Ctrl+V)
+        <input type="file" id="fileInput" multiple>
+      </div>
+      <div class="upload-previews" id="uploadPreviews"></div>
+      <div class="edit-actions">
+        <button class="edit-btn" id="editBtn" onclick="submitEdit()">Submit</button>
+        <div class="status">
+          <div class="status-dot" id="statusDot"></div>
+          <span id="statusText">Ready</span>
+        </div>
+      </div>
+    </div>
+    <div class="history-wrap">
+      <div class="history-label">History</div>
+      <div id="historyList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="done-overlay" id="doneOverlay">
+  <div class="done-icon">&#10003;</div>
+  <h2>Cheatsheet Saved</h2>
+  <p>Your cheatsheet.tex is ready for Overleaf.</p>
+</div>
+
+<script>
+  let currentTex = '';
+
+  function highlightTex(src) {
+    let h = src.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    h = h.replace(/(%.*)$/gm, '<span class="tex-comment">$1</span>');
+    h = h.replace(/(\$[^$]+?\$)/g, '<span class="tex-math">$1</span>');
+    h = h.replace(/(\\(?:begin|end)\{[^}]+\})/g, '<span class="tex-env">$1</span>');
+    h = h.replace(/(\\[a-zA-Z@]+)/g, '<span class="tex-cmd">$1</span>');
+    h = h.replace(/([{}])/g, '<span class="tex-brace">$1</span>');
+    return h;
+  }
+
+  async function loadTex() {
+    try {
+      const r = await fetch('/tex');
+      currentTex = await r.text();
+      document.getElementById('sourceCode').innerHTML = highlightTex(currentTex);
+    } catch(e) {
+      document.getElementById('sourceCode').textContent = '% Error loading source.';
+    }
+  }
+
+  async function checkPreview() {
+    try {
+      const r = await fetch('/preview.png', {method:'HEAD'});
+      if (r.ok) { const img = document.getElementById('previewImg'); img.src = '/preview.png?' + Date.now(); img.style.display = 'block'; }
+    } catch(e) {}
+  }
+
+  async function submitEdit() {
+    const input = document.getElementById('editInput');
+    const text = input.value.trim();
+    if (!text) return;
+    const btn = document.getElementById('editBtn');
+    const dot = document.getElementById('statusDot');
+    const st = document.getElementById('statusText');
+    btn.disabled = true; input.disabled = true;
+    dot.classList.add('working'); st.textContent = 'Claude is editing...';
+    const reqText = text; input.value = '';
+    try {
+      const imagePaths = uploadedImages.map(i => i.path);
+      const r = await fetch('/request', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({request:reqText, images:imagePaths})});
+      const d = await r.json();
+      if (d.tex) { currentTex = d.tex; document.getElementById('sourceCode').innerHTML = highlightTex(currentTex); }
+      addHistory(reqText, d.summary || 'Done');
+      checkPreview();
+    } catch(e) { addHistory(reqText, 'Error: ' + e.message, true); }
+    finally { btn.disabled = false; input.disabled = false; dot.classList.remove('working'); st.textContent = 'Ready'; input.focus(); uploadedImages = []; renderUploadPreviews(); }
+  }
+
+  function addHistory(req, res, isError) {
+    const el = document.createElement('div');
+    el.className = 'h-item';
+    el.innerHTML = `<div class="h-req">${esc(req)}</div><div class="h-res" ${isError?'style="color:var(--red)"':''}>${esc(res)}</div>`;
+    document.getElementById('historyList').prepend(el);
+  }
+
+  function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function copyTex() {
+    navigator.clipboard.writeText(currentTex).then(() => {
+      const b = event.target; const o = b.textContent; b.textContent = 'Copied'; setTimeout(() => b.textContent = o, 1200);
+    });
+  }
+
+  function downloadTex() {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([currentTex], {type:'text/x-tex'}));
+    a.download = 'cheatsheet.tex'; a.click(); URL.revokeObjectURL(a.href);
+  }
+
+  async function finish() {
+    try { await fetch('/quit', {method:'POST'}); } catch(e) {}
+    document.getElementById('doneOverlay').classList.add('show');
+  }
+
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); submitEdit(); } });
+
+  // --- Image upload ---
+  let uploadedImages = []; // array of {name, path} after upload
+
+  const uploadArea = document.getElementById('uploadArea');
+  const fileInput = document.getElementById('fileInput');
+  const uploadPreviews = document.getElementById('uploadPreviews');
+
+  // Drag and drop
+  uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+  uploadArea.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+  });
+
+  fileInput.addEventListener('change', () => { handleFiles(fileInput.files); fileInput.value = ''; });
+
+  async function handleFiles(files) {
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append('image', file);
+      try {
+        const r = await fetch('/upload_image', { method: 'POST', body: formData });
+        const d = await r.json();
+        if (d.path) {
+          const isImage = file.type.startsWith('image/');
+          uploadedImages.push({ name: d.name || file.name, path: d.path, isImage });
+          renderUploadPreviews();
+        }
+      } catch(e) { console.error('Upload failed:', e); }
+    }
+  }
+
+  function renderUploadPreviews() {
+    uploadPreviews.innerHTML = '';
+    uploadedImages.forEach((img, idx) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'upload-thumb-wrap';
+      if (img.isImage) {
+        wrap.innerHTML = `<img class="upload-thumb" src="/uploaded/${encodeURIComponent(img.name)}" alt="${esc(img.name)}" title="${esc(img.name)}"><button class="upload-remove" onclick="removeUpload(${idx})">&times;</button>`;
+      } else {
+        const ext = img.name.split('.').pop().toUpperCase();
+        wrap.innerHTML = `<div class="upload-file-icon" title="${esc(img.name)}">${esc(ext)}<br>${esc(img.name.substring(0,12))}</div><button class="upload-remove" onclick="removeUpload(${idx})">&times;</button>`;
+      }
+      uploadPreviews.appendChild(wrap);
+    });
+  }
+
+  // Paste support (Ctrl+V screenshots or files)
+  document.addEventListener('paste', e => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const files = [];
+    for (const item of items) {
+      if (item.kind === 'file') {
+        const file = item.getAsFile();
+        if (file) files.push(file);
+      }
+    }
+    if (files.length > 0) {
+      e.preventDefault();
+      handleFiles(files);
+    }
+  });
+
+  function removeUpload(idx) {
+    uploadedImages.splice(idx, 1);
+    renderUploadPreviews();
+  }
+
+  loadTex(); checkPreview();
+</script>
+</body>
+</html>

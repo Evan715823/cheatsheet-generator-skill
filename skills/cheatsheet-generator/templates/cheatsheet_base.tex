@@ -1,0 +1,58 @@
+\documentclass[10pt,landscape,%%PAPER_SIZE%%]{article}
+\usepackage[landscape,left=%%MARGIN%%,right=%%MARGIN%%,top=%%MARGIN%%,bottom=%%MARGIN%%]{geometry}
+\usepackage{multicol}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fontspec}
+\usepackage{booktabs}
+\usepackage{graphicx}
+
+% Font settings (requires XeLaTeX or LuaLaTeX)
+\setmainfont{%%FONT_FAMILY%%}
+\setsansfont{%%FONT_FAMILY%%}
+
+% Colors
+%%COLOR_DEFINITIONS%%
+
+% Font size and spacing
+\renewcommand{\normalsize}{\fontsize{%%FONT_SIZE%%}{%%LINE_HEIGHT%%}\selectfont}
+\normalsize
+
+% Section formatting
+\titleformat{\section}{\color{sectionblue}\bfseries\fontsize{6pt}{6pt}\selectfont}{}{0em}{}
+\titleformat{\subsection}{\color{conceptcyan}\bfseries\fontsize{5.5pt}{5.5pt}\selectfont}{}{0em}{}
+\titlespacing*{\section}{0pt}{1pt}{0.5pt}
+\titlespacing*{\subsection}{0pt}{0.5pt}{0.25pt}
+
+% List settings
+\setlist[itemize]{leftmargin=*,nosep,topsep=0pt,parsep=0pt,partopsep=0pt,itemsep=0pt}
+\setlist[enumerate]{leftmargin=*,nosep,topsep=0pt,parsep=0pt,partopsep=0pt,itemsep=0pt}
+
+% Paragraph settings
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.3pt}
+\setlength{\columnsep}{3mm}
+
+% Prevent text/formula overflow into adjacent columns
+\tolerance=9999
+\emergencystretch=3em
+\hyphenpenalty=50
+\exhyphenpenalty=50
+\sloppy
+\raggedright
+
+\pagestyle{empty}
+
+% Utility commands
+\newcommand{\concept}[1]{\textcolor{conceptcyan}{\textbf{#1}}}
+\newcommand{\process}[1]{\textcolor{processpurple}{\textbf{#1}}}
+\newcommand{\category}[1]{\textcolor{categorygreen}{\textbf{#1}}}
+\newcommand{\important}[1]{{\setlength{\fboxsep}{1pt}\colorbox{highlightyellow}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{#1}}}}
+
+\begin{document}
+\begin{multicols}{%%COLUMNS%%}
+%%CONTENT%%
+\end{multicols}
+\end{document}
