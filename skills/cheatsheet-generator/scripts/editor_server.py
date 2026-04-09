@@ -258,7 +258,9 @@ def main():
     print(f"EDITOR_SERVER_PORT={port}", flush=True)
     print(f"Opening {url}", flush=True)
 
-    webbrowser.open(url)
+    # Delay browser open so the server is listening before the request arrives.
+    # Fixes blank page on macOS where the browser connects faster than Windows.
+    threading.Timer(1.0, lambda: webbrowser.open(url)).start()
     app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False)
 
 
