@@ -6,7 +6,7 @@
 <title>Cheatsheet Generator</title>
 <style>
   :root {
-    --bg: #fafafa;
+    --bg: #f5f5f7;
     --surface: #ffffff;
     --border: #e5e5e5;
     --border-focus: #0071e3;
@@ -14,10 +14,12 @@
     --text-secondary: #86868b;
     --accent: #0071e3;
     --accent-hover: #0077ED;
-    --radius: 12px;
-    --radius-sm: 8px;
-    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-    --shadow-lg: 0 4px 12px rgba(0,0,0,0.08);
+    --radius: 14px;
+    --radius-sm: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.04);
+    --shadow-hover: 0 4px 20px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.03);
+    --shadow-xl: 0 12px 40px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.04);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -25,10 +27,14 @@
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
     background: var(--bg);
+    background-image:
+      radial-gradient(ellipse 120% 80% at 20% 0%, rgba(0,113,227,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 100% 60% at 80% 100%, rgba(88,86,214,0.03) 0%, transparent 50%);
     color: var(--text);
     line-height: 1.47;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
   }
 
   .page { max-width: 1400px; margin: 0 auto; padding: 48px 24px; }
@@ -38,6 +44,8 @@
     font-weight: 700;
     letter-spacing: -0.02em;
     margin-bottom: 4px;
+    opacity: 0;
+    animation: fadeSlideDown 0.5s ease-out 0.05s forwards;
   }
 
   .subtitle {
@@ -45,6 +53,33 @@
     color: var(--text-secondary);
     font-weight: 400;
     margin-bottom: 36px;
+    opacity: 0;
+    animation: fadeSlideDown 0.5s ease-out 0.12s forwards;
+  }
+
+  /* Entrance animations */
+  @keyframes fadeSlideDown {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes spinRotate {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes submitPulse {
+    0%, 100% { box-shadow: 0 4px 15px rgba(0,113,227,0.3); }
+    50% { box-shadow: 0 4px 25px rgba(0,113,227,0.45); }
   }
 
   /* Layout: form left, preview right */
@@ -69,6 +104,20 @@
     border-radius: var(--radius);
     padding: 24px;
     box-shadow: var(--shadow);
+    transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+    opacity: 0;
+    animation: fadeSlideUp 0.45s ease-out forwards;
+  }
+
+  .card:nth-child(1) { animation-delay: 0.08s; }
+  .card:nth-child(2) { animation-delay: 0.14s; }
+  .card:nth-child(3) { animation-delay: 0.20s; }
+  .card:nth-child(4) { animation-delay: 0.26s; }
+
+  .card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
+    border-color: #d8d8d8;
   }
 
   .card-title {
@@ -107,10 +156,11 @@
     color: var(--text-secondary);
     border: none;
     background: transparent;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     user-select: none;
+    position: relative;
   }
 
   .seg-opt:hover { color: var(--text); }
@@ -118,7 +168,7 @@
   .seg-opt.active {
     background: var(--surface);
     color: var(--text);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
   }
 
   /* Select */
@@ -132,7 +182,7 @@
     border-radius: var(--radius-sm);
     color: var(--text);
     outline: none;
-    transition: border-color 0.2s;
+    transition: border-color 0.25s, box-shadow 0.25s;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l5 6 5-6' fill='none' stroke='%2386868b' stroke-width='1.5'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
@@ -140,7 +190,10 @@
     padding-right: 32px;
   }
 
-  select:focus { border-color: var(--border-focus); }
+  select:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(0,113,227,0.1);
+  }
 
   /* Sliders */
   .slider-row {
@@ -157,6 +210,7 @@
     background: #e5e5ea;
     border-radius: 2px;
     outline: none;
+    transition: background 0.2s;
   }
 
   input[type="range"]::-webkit-slider-thumb {
@@ -167,11 +221,35 @@
     border: 2px solid var(--accent);
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-    transition: transform 0.15s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15), 0 0 0 0 rgba(0,113,227,0);
+    transition: transform 0.2s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s ease;
   }
 
-  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15), 0 0 8px rgba(0,113,227,0.3);
+  }
+
+  input[type="range"]:active::-webkit-slider-thumb {
+    transform: scale(1.05);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15), 0 0 12px rgba(0,113,227,0.35);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15), 0 0 0 0 rgba(0,113,227,0);
+    transition: transform 0.2s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s ease;
+  }
+
+  input[type="range"]::-moz-range-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15), 0 0 8px rgba(0,113,227,0.3);
+  }
 
   .slider-val {
     min-width: 38px;
@@ -213,10 +291,13 @@
     outline: none;
     resize: vertical;
     min-height: 72px;
-    transition: border-color 0.2s;
+    transition: border-color 0.25s, box-shadow 0.25s;
   }
 
-  textarea:focus { border-color: var(--border-focus); }
+  textarea:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(0,113,227,0.1);
+  }
 
   /* Color swatches */
   .swatches { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -227,18 +308,26 @@
     border-radius: var(--radius-sm);
     cursor: pointer;
     border: 2px solid transparent;
-    transition: all 0.2s;
+    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), border-color 0.25s ease, box-shadow 0.3s ease;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     position: relative;
   }
 
-  .swatch:hover { transform: scale(1.08); }
+  .swatch:hover {
+    transform: scale(1.12);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+  }
+
+  .swatch:active {
+    transform: scale(1.04);
+  }
 
   .swatch.active {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(0,113,227,0.2);
+    box-shadow: 0 0 0 3px rgba(0,113,227,0.25), 0 4px 12px rgba(0,113,227,0.15);
+    transform: scale(1.08);
   }
 
   .sw-top { flex: 1; }
@@ -272,13 +361,17 @@
     align-items: center;
     gap: 8px;
     padding: 5px 8px;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 0.78rem;
-    transition: background 0.1s;
+    transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
     cursor: pointer;
   }
 
-  .file-item:hover { background: #f2f2f7; }
+  .file-item:hover {
+    background: #f2f2f7;
+    transform: translateX(2px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
 
   .file-item input[type="checkbox"] {
     width: 16px;
@@ -318,36 +411,92 @@
     border-radius: 6px;
     color: var(--text-secondary);
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.2s ease;
     font-family: inherit;
   }
 
   .file-actions button:hover {
     border-color: var(--accent);
     color: var(--accent);
+    box-shadow: 0 1px 4px rgba(0,113,227,0.1);
   }
 
   /* Submit */
-  .submit-wrap { padding-top: 4px; }
+  .submit-wrap {
+    padding-top: 4px;
+    opacity: 0;
+    animation: fadeSlideUp 0.45s ease-out 0.32s forwards;
+  }
 
   .submit-btn {
     width: 100%;
-    padding: 12px;
+    padding: 13px;
     font-size: 0.95rem;
     font-weight: 600;
     font-family: inherit;
-    background: var(--accent);
+    background: linear-gradient(135deg, #0071e3, #005bb5);
     color: #fff;
     border: none;
     border-radius: var(--radius);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
     letter-spacing: -0.01em;
+    box-shadow: 0 4px 15px rgba(0,113,227,0.3);
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
   }
 
-  .submit-btn:hover { background: var(--accent-hover); }
-  .submit-btn:active { transform: scale(0.99); }
-  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .submit-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .submit-btn:hover {
+    background: linear-gradient(135deg, #0077ED, #0060c0);
+    box-shadow: 0 6px 22px rgba(0,113,227,0.4);
+    transform: translateY(-1px);
+  }
+
+  .submit-btn:hover::before { opacity: 1; }
+
+  .submit-btn:active {
+    transform: scale(0.99) translateY(0);
+    box-shadow: 0 2px 10px rgba(0,113,227,0.3);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0,113,227,0.15);
+  }
+
+  .submit-btn.is-loading {
+    animation: submitPulse 1.8s ease-in-out infinite;
+  }
+
+  .submit-spinner {
+    display: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spinRotate 0.65s linear infinite;
+    flex-shrink: 0;
+  }
+
+  .submit-btn.is-loading .submit-spinner {
+    display: block;
+  }
 
   .error-msg {
     color: #dc2626;
@@ -361,14 +510,21 @@
   .preview-sticky {
     position: sticky;
     top: 24px;
+    opacity: 0;
+    animation: fadeSlideUp 0.5s ease-out 0.22s forwards;
   }
 
   .preview-card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-xl);
     overflow: hidden;
+    transition: box-shadow 0.35s ease;
+  }
+
+  .preview-card:hover {
+    box-shadow: 0 16px 50px rgba(0,0,0,0.12), 0 6px 16px rgba(0,0,0,0.05);
   }
 
   .preview-header {
@@ -398,6 +554,7 @@
     aspect-ratio: 11 / 8.5;
     overflow: hidden;
     position: relative;
+    transition: aspect-ratio 0.3s ease;
   }
 
   .preview-body.landscape { aspect-ratio: 11 / 8.5; }
@@ -484,10 +641,17 @@
     align-items: center;
     justify-content: center;
     margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(52,199,89,0.3);
   }
 
   .success-page h2 { font-size: 1.4rem; margin-bottom: 8px; }
   .success-page p { color: var(--text-secondary); font-size: 0.95rem; }
+
+  /* Scrollbar styling */
+  .file-list::-webkit-scrollbar { width: 6px; }
+  .file-list::-webkit-scrollbar-track { background: transparent; }
+  .file-list::-webkit-scrollbar-thumb { background: #d1d1d6; border-radius: 3px; }
+  .file-list::-webkit-scrollbar-thumb:hover { background: #a1a1a6; }
 </style>
 </head>
 <body>
@@ -641,7 +805,10 @@
       </div>
 
       <div class="submit-wrap">
-        <button class="submit-btn" id="submitBtn" onclick="submitConfig()">Generate Cheatsheet</button>
+        <button class="submit-btn" id="submitBtn" onclick="submitConfig()">
+          <span class="submit-spinner"></span>
+          <span class="submit-label">Generate Cheatsheet</span>
+        </button>
         <div class="error-msg" id="errorMsg"></div>
       </div>
     </div>
@@ -915,7 +1082,8 @@
 
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
-    btn.textContent = 'Saving...';
+    btn.classList.add('is-loading');
+    btn.querySelector('.submit-label').textContent = 'Saving...';
 
     try {
       const resp = await fetch('/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config) });
@@ -925,7 +1093,8 @@
       } else throw new Error();
     } catch (e) {
       btn.disabled = false;
-      btn.textContent = 'Generate Cheatsheet';
+      btn.classList.remove('is-loading');
+      btn.querySelector('.submit-label').textContent = 'Generate Cheatsheet';
       const err = document.getElementById('errorMsg');
       err.textContent = 'Failed to save. Try again.';
       err.style.display = 'block';

@@ -44,7 +44,7 @@ This blocks until the user submits the form and exits.
 
 ### Step 1.3 — Read config
 
-Read `<WORKDIR>/.cheatsheet_config.json`.
+Read `<WORKDIR>/output/.cheatsheet_config.json`.
 
 ---
 
@@ -276,7 +276,7 @@ exam resource. Write as much relevant content as physically possible.
 10. **This compiles with XeLaTeX** (because of `fontspec`). Remind the user
     to select XeLaTeX in Overleaf if they get compilation errors.
 
-Write the output to `<WORKDIR>/cheatsheet.tex`.
+Write the output to `<WORKDIR>/output/cheatsheet.tex`.
 
 ---
 
@@ -286,7 +286,7 @@ Write the output to `<WORKDIR>/cheatsheet.tex`.
 
 Run in background:
 ```bash
-python "${CLAUDE_SKILL_DIR}/scripts/editor_server.py" --texfile "<WORKDIR>/cheatsheet.tex"
+python "${CLAUDE_SKILL_DIR}/scripts/editor_server.py" --texfile "<WORKDIR>/output/cheatsheet.tex"
 ```
 
 Capture the port from `EDITOR_SERVER_PORT=<port>` in stdout.
@@ -313,7 +313,7 @@ Loop:
    ```bash
    python -c "
    import json, sys
-   with open('<WORKDIR>/cheatsheet.tex', 'r', encoding='utf-8') as f:
+   with open('<WORKDIR>/output/cheatsheet.tex', 'r', encoding='utf-8') as f:
        tex = f.read()
    payload = json.dumps({'summary': '<SUMMARY>', 'tex': tex})
    sys.stdout.write(payload)
@@ -327,7 +327,7 @@ Loop:
 
 Remove all temporary directories created during generation:
 ```bash
-rm -rf "<WORKDIR>/.rendered" "<WORKDIR>/.uploads" "<WORKDIR>/.converted"
+rm -rf "<WORKDIR>/output/.rendered" "<WORKDIR>/output/.uploads" "<WORKDIR>/output/.converted"
 ```
 Also remove any extraction folders (`*_media/` and `*_pages/`):
 ```bash
@@ -335,5 +335,5 @@ rm -rf <WORKDIR>/*_media <WORKDIR>/*_pages
 ```
 
 Tell the user:
-> Your cheatsheet is ready at `cheatsheet.tex`. Compile with **XeLaTeX** in
+> Your cheatsheet is ready at `output/cheatsheet.tex`. Compile with **XeLaTeX** in
 > Overleaf. Good luck on your exam!

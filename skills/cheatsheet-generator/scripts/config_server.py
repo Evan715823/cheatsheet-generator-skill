@@ -87,7 +87,9 @@ def index():
 def submit():
     """Save config and schedule shutdown."""
     config = request.get_json()
-    config_path = os.path.join(WORKDIR, ".cheatsheet_config.json")
+    output_dir = os.path.join(WORKDIR, "output")
+    os.makedirs(output_dir, exist_ok=True)
+    config_path = os.path.join(output_dir, ".cheatsheet_config.json")
     with open(config_path, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
 
