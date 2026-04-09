@@ -31,6 +31,8 @@ Generated cheatsheets — compiled in Overleaf with XeLaTeX:
 
 <img src="skills/cheatsheet-generator/examples/screenshots/example_2.png" alt="Generated cheatsheet example 2: Machine Learning" width="100%">
 
+<img src="skills/cheatsheet-generator/examples/screenshots/example_3.png" alt="Generated cheatsheet example 3: Distributed Systems" width="100%">
+
 > Sample materials are available in [`skills/cheatsheet-generator/examples/sample_materials/`](skills/cheatsheet-generator/examples/sample_materials/) — try them yourself!
 
 ---

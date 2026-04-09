@@ -360,6 +360,145 @@
 
   .done-overlay h2 { font-size: 1.3rem; font-weight: 600; }
   .done-overlay p { color: var(--text-sec); }
+
+  /* Overleaf tutorial modal */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(6px);
+    z-index: 200;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-backdrop.show { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 16px;
+    width: 520px;
+    max-width: 90vw;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.18);
+    padding: 32px;
+    position: relative;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--text-sec);
+    transition: all 0.15s;
+  }
+  .modal-close:hover { background: #eee; color: var(--text); }
+
+  .modal h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .modal .subtitle {
+    color: var(--text-sec);
+    font-size: 0.82rem;
+    margin-bottom: 20px;
+  }
+
+  .step-list {
+    list-style: none;
+    counter-reset: steps;
+  }
+
+  .step-list li {
+    counter-increment: steps;
+    position: relative;
+    padding: 14px 16px 14px 50px;
+    margin-bottom: 10px;
+    background: var(--bg);
+    border-radius: 10px;
+    font-size: 0.84rem;
+    line-height: 1.55;
+  }
+
+  .step-list li::before {
+    content: counter(steps);
+    position: absolute;
+    left: 14px;
+    top: 14px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .step-list li strong { color: var(--text); }
+  .step-list li code {
+    background: rgba(0,113,227,0.08);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--accent);
+  }
+
+  .modal-note {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: #6d4c00;
+  }
+
+  .modal-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .tb-btn.overleaf {
+    background: #47a141;
+    border-color: #47a141;
+    color: #fff;
+  }
+  .tb-btn.overleaf:hover { background: #3d8c38; }
+
+  .done-tutorial {
+    margin-top: 20px;
+    text-align: center;
+  }
+  .done-tutorial a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .done-tutorial a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -368,6 +507,7 @@
   <h1>Cheatsheet Editor</h1>
   <button class="tb-btn" onclick="copyTex()">Copy</button>
   <button class="tb-btn" onclick="downloadTex()">Download</button>
+  <button class="tb-btn overleaf" onclick="showOverleafGuide()">Import to Overleaf</button>
   <button class="tb-btn primary" onclick="finish()">Done</button>
 </div>
 
@@ -407,6 +547,35 @@
   <div class="done-icon">&#10003;</div>
   <h2>Cheatsheet Saved</h2>
   <p>Your cheatsheet.tex is ready for Overleaf.</p>
+  <div class="done-tutorial">
+    <a onclick="document.getElementById('doneOverlay').classList.remove('show'); showOverleafGuide();">How to import to Overleaf &rarr;</a>
+  </div>
+</div>
+
+<!-- Overleaf Import Tutorial Modal -->
+<div class="modal-backdrop" id="overleafModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeOverleafGuide()">&times;</button>
+    <h2><span style="font-size:1.3rem">&#127811;</span> Import to Overleaf</h2>
+    <p class="subtitle">Follow these steps to compile your cheatsheet in Overleaf</p>
+
+    <ol class="step-list">
+      <li>Open <strong>Overleaf</strong> and click <strong>New Project</strong> &rarr; <strong>Blank Project</strong>. Give it any name.</li>
+      <li>In the new project, click on <code>main.tex</code> in the file tree on the left. <strong>Select all</strong> existing content (Ctrl+A) and <strong>delete</strong> it.</li>
+      <li>Click the <strong>Copy</strong> button in this editor's toolbar (or open the downloaded <code>.tex</code> file and copy its contents). Then <strong>paste</strong> into the empty <code>main.tex</code> on Overleaf.</li>
+      <li>Click the <strong>Menu</strong> button (top-left corner in Overleaf). Under <strong>Settings</strong>, change the <strong>Compiler</strong> from <code>pdfLaTeX</code> to <code>XeLaTeX</code>.</li>
+      <li>Click <strong>Recompile</strong> (or Ctrl+Enter). Your cheatsheet PDF will render on the right!</li>
+    </ol>
+
+    <div class="modal-note">
+      <strong>&#9888; Important:</strong> You <em>must</em> switch the compiler to <strong>XeLaTeX</strong> (step 4). The default pdfLaTeX does not support the <code>fontspec</code> package used for custom fonts. If you see a compilation error about fontspec, this is the fix.
+    </div>
+
+    <div class="modal-actions">
+      <button class="tb-btn overleaf" onclick="window.open('https://www.overleaf.com/project','_blank')">Open Overleaf</button>
+      <button class="tb-btn" onclick="copyTex(); closeOverleafGuide();">Copy LaTeX &amp; Close</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -558,6 +727,24 @@
     uploadedImages.splice(idx, 1);
     renderUploadPreviews();
   }
+
+  function showOverleafGuide() {
+    document.getElementById('overleafModal').classList.add('show');
+  }
+
+  function closeOverleafGuide() {
+    document.getElementById('overleafModal').classList.remove('show');
+  }
+
+  // Close modal on backdrop click
+  document.getElementById('overleafModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('overleafModal')) closeOverleafGuide();
+  });
+
+  // Close modal on Escape key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeOverleafGuide();
+  });
 
   loadTex(); checkPreview();
 </script>

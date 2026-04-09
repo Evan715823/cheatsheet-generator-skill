@@ -54,7 +54,41 @@ Read `<WORKDIR>/.cheatsheet_config.json`.
 
 Read every file the user selected. Use the approach below for each file type:
 
-- **PDF files**: Read them directly (use `pages` parameter for large PDFs)
+- **PDF files**: Use pymupdf (fitz) for both text and visual extraction:
+  1. **Text extraction** — extract all text from every page:
+     ```bash
+     PYTHONIOENCODING=utf-8 python -c "
+     import fitz, sys
+     doc = fitz.open(sys.argv[1])
+     for i, page in enumerate(doc):
+         text = page.get_text()
+         if text.strip():
+             print(f'=== PAGE {i+1} ===')
+             print(text)
+     " "<FILE_PATH>"
+     ```
+  2. **Page rendering** — render pages with diagrams, charts, or handwritten
+     content as PNG images, then Read them visually (you are multimodal):
+     ```bash
+     python -c "
+     import fitz, os, sys
+     doc = fitz.open(sys.argv[1])
+     out_dir = os.path.splitext(sys.argv[1])[0] + '_pages'
+     os.makedirs(out_dir, exist_ok=True)
+     for i, page in enumerate(doc):
+         pix = page.get_pixmap(dpi=200)
+         out = os.path.join(out_dir, f'page_{i+1:03d}.png')
+         pix.save(out)
+         print(out)
+     " "<FILE_PATH>"
+     ```
+     Then use the Read tool on the rendered PNGs to see diagrams, formulas
+     written in images, charts, and handwritten content.
+     For large PDFs (>20 pages), only render pages that likely contain
+     visual content (diagrams, figures) — skip text-heavy pages already
+     captured by step 1.
+
+  Combine text and visual information for full understanding.
 - **PPTX files**: A `.pptx` is a zip archive containing XML slides and media.
   Use this two-step extraction process:
   1. **Text extraction** — run a Python script with `python-pptx` to parse all
@@ -295,9 +329,9 @@ Remove all temporary directories created during generation:
 ```bash
 rm -rf "<WORKDIR>/.rendered" "<WORKDIR>/.uploads" "<WORKDIR>/.converted"
 ```
-Also remove any PPTX media extraction folders (`*_media/`):
+Also remove any extraction folders (`*_media/` and `*_pages/`):
 ```bash
-rm -rf <WORKDIR>/*_media
+rm -rf <WORKDIR>/*_media <WORKDIR>/*_pages
 ```
 
 Tell the user:
